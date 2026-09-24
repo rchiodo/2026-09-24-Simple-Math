@@ -147,4 +147,37 @@ Describe 'math-tool.ps1 CLI' {
         $factorialLine | Should -Be $FactorialExpected
         $fibonacciLine | Should -Not -Be $factorialLine
     }
+
+    It 'preserves N as the first positional parameter' {
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $powerShellPath
+        $startInfo.UseShellExecute = $false
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        foreach ($argument in @('-NoLogo', '-NoProfile', '-File', $mathToolPath, '6')) {
+            [void] $startInfo.ArgumentList.Add($argument)
+        }
+
+        $process = $null
+        try {
+            $process = [System.Diagnostics.Process]::Start($startInfo)
+            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+            $stderrTask = $process.StandardError.ReadToEndAsync()
+            $process.WaitForExit()
+            $stdout = $stdoutTask.GetAwaiter().GetResult()
+            $stderr = $stderrTask.GetAwaiter().GetResult()
+
+            $process.ExitCode | Should -Be 0
+            $stderr | Should -Be ''
+            $stdoutLines = $stdout -split '\r?\n'
+            $stdoutLines.Count | Should -Be 2
+            $stdoutLines[0] | Should -Be 'Fibonacci(6) = 8'
+            $stdoutLines[1] | Should -Be ''
+        }
+        finally {
+            if ($null -ne $process) {
+                $process.Dispose()
+            }
+        }
+    }
 }

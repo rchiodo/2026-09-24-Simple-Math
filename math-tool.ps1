@@ -1,10 +1,10 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('fibonacci', 'factorial')]
-    [string] $Operation = 'fibonacci',
-
     [ValidateRange(0, [int]::MaxValue)]
-    [int] $N = 0
+    [int] $N = 0,
+
+    [ValidateSet('fibonacci', 'factorial')]
+    [string] $Operation = 'fibonacci'
 )
 
 function Get-Fibonacci {
