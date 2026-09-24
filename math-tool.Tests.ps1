@@ -61,6 +61,40 @@ Describe 'math-tool.ps1 CLI' {
     BeforeAll {
         $mathToolPath = Join-Path $PSScriptRoot 'math-tool.ps1'
         $powerShellPath = (Get-Command pwsh -CommandType Application | Select-Object -First 1).Source
+        $invokeMathTool = {
+            param([string[]] $Arguments)
+
+            $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+            $startInfo.FileName = $powerShellPath
+            $startInfo.UseShellExecute = $false
+            $startInfo.RedirectStandardOutput = $true
+            $startInfo.RedirectStandardError = $true
+            foreach ($argument in @('-NoLogo', '-NoProfile', '-File', $mathToolPath) + $Arguments) {
+                [void] $startInfo.ArgumentList.Add($argument)
+            }
+
+            $process = $null
+            try {
+                $process = [System.Diagnostics.Process]::Start($startInfo)
+                $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+                $stderrTask = $process.StandardError.ReadToEndAsync()
+                $process.WaitForExit(10000) | Should -BeTrue
+                [PSCustomObject] @{
+                    ExitCode = $process.ExitCode
+                    Stderr = $stderrTask.GetAwaiter().GetResult()
+                    Stdout = $stdoutTask.GetAwaiter().GetResult()
+                }
+            }
+            finally {
+                if ($null -ne $process) {
+                    if (-not $process.HasExited) {
+                        $process.Kill($true)
+                        [void] $process.WaitForExit(5000)
+                    }
+                    $process.Dispose()
+                }
+            }
+        }
     }
 
     It 'prints exactly one result line for N=<N>' -TestCases @(
@@ -73,44 +107,18 @@ Describe 'math-tool.ps1 CLI' {
         @{ N = 1; Operation = 'factorial'; Expected = 'Factorial(1) = 1' }
         @{ N = 5; Operation = 'factorial'; Expected = 'Factorial(5) = 120' }
     ) {
-        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-        $startInfo.FileName = $powerShellPath
-        $startInfo.UseShellExecute = $false
-        $startInfo.RedirectStandardOutput = $true
-        $startInfo.RedirectStandardError = $true
-        $arguments = @('-NoLogo', '-NoProfile', '-File', $mathToolPath, '-N', $N.ToString())
+        $arguments = @('-N', $N.ToString())
         if ($Operation) {
             $arguments += @('-Operation', $Operation)
         }
-        foreach ($argument in $arguments) {
-            [void] $startInfo.ArgumentList.Add($argument)
-        }
 
-        $process = $null
-        try {
-            $process = [System.Diagnostics.Process]::Start($startInfo)
-            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-            $stderrTask = $process.StandardError.ReadToEndAsync()
-            $process.WaitForExit(10000) | Should -BeTrue
-            $stdout = $stdoutTask.GetAwaiter().GetResult()
-            $stderr = $stderrTask.GetAwaiter().GetResult()
-
-            $process.ExitCode | Should -Be 0
-            $stderr | Should -Be ''
-            $stdoutLines = $stdout -split '\r?\n'
-            $stdoutLines.Count | Should -Be 2
-            $stdoutLines[0] | Should -Be $Expected
-            $stdoutLines[1] | Should -Be ''
-        }
-        finally {
-            if ($null -ne $process) {
-                if (-not $process.HasExited) {
-                    $process.Kill($true)
-                    $process.WaitForExit()
-                }
-                $process.Dispose()
-            }
-        }
+        $result = & $invokeMathTool -Arguments $arguments
+        $result.ExitCode | Should -Be 0
+        $result.Stderr | Should -Be ''
+        $stdoutLines = $result.Stdout -split '\r?\n'
+        $stdoutLines.Count | Should -Be 2
+        $stdoutLines[0] | Should -Be $Expected
+        $stdoutLines[1] | Should -Be ''
     }
 
     It 'dispatches N=<N> to different results and labels per Operation' -TestCases @(
@@ -119,33 +127,10 @@ Describe 'math-tool.ps1 CLI' {
         $runMathTool = {
             param($operation)
 
-            $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-            $startInfo.FileName = $powerShellPath
-            $startInfo.UseShellExecute = $false
-            $startInfo.RedirectStandardOutput = $true
-            $startInfo.RedirectStandardError = $true
-            foreach ($argument in @('-NoLogo', '-NoProfile', '-File', $mathToolPath, '-N', $N.ToString(), '-Operation', $operation)) {
-                [void] $startInfo.ArgumentList.Add($argument)
-            }
-
-            $process = $null
-            try {
-                $process = [System.Diagnostics.Process]::Start($startInfo)
-                $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-                $process.WaitForExit(10000) | Should -BeTrue
-                $stdout = $stdoutTask.GetAwaiter().GetResult()
-                $process.ExitCode | Should -Be 0
-                return ($stdout -split '\r?\n')[0]
-            }
-            finally {
-                if ($null -ne $process) {
-                    if (-not $process.HasExited) {
-                        $process.Kill($true)
-                        $process.WaitForExit()
-                    }
-                    $process.Dispose()
-                }
-            }
+            $result = & $invokeMathTool -Arguments @('-N', $N.ToString(), '-Operation', $operation)
+            $result.ExitCode | Should -Be 0
+            $result.Stderr | Should -Be ''
+            return ($result.Stdout -split '\r?\n')[0]
         }
 
         $fibonacciLine = & $runMathTool 'fibonacci'
@@ -157,36 +142,9 @@ Describe 'math-tool.ps1 CLI' {
     }
 
     It 'preserves N as the first positional parameter' {
-        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-        $startInfo.FileName = $powerShellPath
-        $startInfo.UseShellExecute = $false
-        $startInfo.RedirectStandardOutput = $true
-        $startInfo.RedirectStandardError = $true
-        foreach ($argument in @('-NoLogo', '-NoProfile', '-File', $mathToolPath, '6')) {
-            [void] $startInfo.ArgumentList.Add($argument)
-        }
-
-        $process = $null
-        try {
-            $process = [System.Diagnostics.Process]::Start($startInfo)
-            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-            $stderrTask = $process.StandardError.ReadToEndAsync()
-            $process.WaitForExit(10000) | Should -BeTrue
-            $stdout = $stdoutTask.GetAwaiter().GetResult()
-            $stderr = $stderrTask.GetAwaiter().GetResult()
-
-            $process.ExitCode | Should -Be 0
-            $stderr | Should -Be ''
-            $stdout.TrimEnd("`r", "`n") | Should -Be 'Fibonacci(6) = 8'
-        }
-        finally {
-            if ($null -ne $process) {
-                if (-not $process.HasExited) {
-                    $process.Kill($true)
-                    $process.WaitForExit()
-                }
-                $process.Dispose()
-            }
-        }
+        $result = & $invokeMathTool -Arguments @('6')
+        $result.ExitCode | Should -Be 0
+        $result.Stderr | Should -Be ''
+        $result.Stdout.TrimEnd("`r", "`n") | Should -Be 'Fibonacci(6) = 8'
     }
 }
