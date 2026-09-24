@@ -61,6 +61,8 @@ Describe 'math-tool.ps1 CLI' {
     BeforeAll {
         $mathToolPath = Join-Path $PSScriptRoot 'math-tool.ps1'
         $powerShellPath = (Get-Command pwsh -CommandType Application | Select-Object -First 1).Source
+        $processTimeoutMs = 10000
+        $killTimeoutMs = 5000
         $invokeMathTool = {
             param([string[]] $Arguments)
 
@@ -78,7 +80,7 @@ Describe 'math-tool.ps1 CLI' {
                 $process = [System.Diagnostics.Process]::Start($startInfo)
                 $stdoutTask = $process.StandardOutput.ReadToEndAsync()
                 $stderrTask = $process.StandardError.ReadToEndAsync()
-                $process.WaitForExit(10000) | Should -BeTrue -Because 'math-tool.ps1 should exit within 10 seconds'
+                $process.WaitForExit($processTimeoutMs) | Should -BeTrue -Because 'math-tool.ps1 should exit within 10 seconds'
                 # The process has exited; wait once more so async output redirection is flushed.
                 $process.WaitForExit()
                 [PSCustomObject] @{
@@ -91,7 +93,7 @@ Describe 'math-tool.ps1 CLI' {
                 if ($null -ne $process) {
                     if (-not $process.HasExited) {
                         $process.Kill($true)
-                        [void] $process.WaitForExit(5000)
+                        [void] $process.WaitForExit($killTimeoutMs)
                     }
                     $process.Dispose()
                 }
