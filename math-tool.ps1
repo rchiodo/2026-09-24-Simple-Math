@@ -46,7 +46,7 @@ function Get-Factorial {
     Returns the factorial of N.
 
     .PARAMETER N
-    A non-negative integer.
+    A non-negative integer. By definition, 0! and 1! both return 1.
 
     .OUTPUTS
     System.Numerics.BigInteger
