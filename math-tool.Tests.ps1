@@ -78,7 +78,7 @@ Describe 'math-tool.ps1 CLI' {
                 $process = [System.Diagnostics.Process]::Start($startInfo)
                 $stdoutTask = $process.StandardOutput.ReadToEndAsync()
                 $stderrTask = $process.StandardError.ReadToEndAsync()
-                $process.WaitForExit(10000) | Should -BeTrue
+                $process.WaitForExit(10000) | Should -BeTrue -Because 'math-tool.ps1 should exit within 10 seconds'
                 [PSCustomObject] @{
                     ExitCode = $process.ExitCode
                     Stderr = $stderrTask.GetAwaiter().GetResult()
@@ -124,17 +124,15 @@ Describe 'math-tool.ps1 CLI' {
     It 'dispatches N=<N> to different results and labels per Operation' -TestCases @(
         @{ N = 6; FibonacciExpected = 'Fibonacci(6) = 8'; FactorialExpected = 'Factorial(6) = 720' }
     ) {
-        $runMathTool = {
-            param($operation)
+        $fibonacciResult = & $invokeMathTool -Arguments @('-N', $N.ToString(), '-Operation', 'fibonacci')
+        $factorialResult = & $invokeMathTool -Arguments @('-N', $N.ToString(), '-Operation', 'factorial')
 
-            $result = & $invokeMathTool -Arguments @('-N', $N.ToString(), '-Operation', $operation)
-            $result.ExitCode | Should -Be 0
-            $result.Stderr | Should -Be ''
-            return ($result.Stdout -split '\r?\n')[0]
-        }
-
-        $fibonacciLine = & $runMathTool 'fibonacci'
-        $factorialLine = & $runMathTool 'factorial'
+        $fibonacciResult.ExitCode | Should -Be 0
+        $fibonacciResult.Stderr | Should -Be ''
+        $factorialResult.ExitCode | Should -Be 0
+        $factorialResult.Stderr | Should -Be ''
+        $fibonacciLine = ($fibonacciResult.Stdout -split '\r?\n')[0]
+        $factorialLine = ($factorialResult.Stdout -split '\r?\n')[0]
 
         $fibonacciLine | Should -Be $FibonacciExpected
         $factorialLine | Should -Be $FactorialExpected
