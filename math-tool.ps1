@@ -1,5 +1,6 @@
-[CmdletBinding()]
+[CmdletBinding(PositionalBinding = $false)]
 param(
+    [Parameter(Position = 0)]
     [ValidateRange(0, [int]::MaxValue)]
     [int] $N = 0,
 

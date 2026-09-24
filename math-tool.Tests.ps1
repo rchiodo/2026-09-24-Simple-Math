@@ -79,6 +79,7 @@ Describe 'math-tool.ps1 CLI' {
                 $stdoutTask = $process.StandardOutput.ReadToEndAsync()
                 $stderrTask = $process.StandardError.ReadToEndAsync()
                 $process.WaitForExit(10000) | Should -BeTrue -Because 'math-tool.ps1 should exit within 10 seconds'
+                # The process has exited; wait once more so async output redirection is flushed.
                 $process.WaitForExit()
                 [PSCustomObject] @{
                     ExitCode = $process.ExitCode
