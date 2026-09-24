@@ -8,6 +8,16 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Get-Fibonacci {
+    <#
+    .SYNOPSIS
+    Returns the nth Fibonacci number.
+
+    .PARAMETER N
+    A non-negative integer index into the Fibonacci sequence.
+
+    .OUTPUTS
+    System.Numerics.BigInteger
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -30,7 +40,7 @@ function Get-Fibonacci {
     return $current
 }
 
-$isDotSourced = $MyInvocation.InvocationName -eq '.'
+$isDotSourced = $MyInvocation.InvocationName -eq '.' -or $MyInvocation.Line -match '^\s*\.\s+'
 if (-not $isDotSourced) {
     $value = Get-Fibonacci -N $N
     Write-Output "Fibonacci($N) = $value"

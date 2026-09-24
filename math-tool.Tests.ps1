@@ -60,7 +60,10 @@ Describe 'math-tool.ps1 CLI' {
 
             $process.ExitCode | Should -Be 0
             $stderr | Should -Be ''
-            $stdout | Should -Be ($Expected + [Environment]::NewLine)
+            $stdoutLines = $stdout -split '\r?\n'
+            $stdoutLines.Count | Should -Be 2
+            $stdoutLines[0] | Should -Be $Expected
+            $stdoutLines[1] | Should -Be ''
         }
         finally {
             if ($null -ne $process) {
