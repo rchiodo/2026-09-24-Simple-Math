@@ -50,9 +50,11 @@ Describe 'math-tool.ps1 CLI' {
         }
 
         $process = [System.Diagnostics.Process]::Start($startInfo)
-        $stdout = $process.StandardOutput.ReadToEnd()
-        $stderr = $process.StandardError.ReadToEnd()
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
         $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
 
         $process.ExitCode | Should -Be 0
         $stderr | Should -Be ''
