@@ -1,8 +1,7 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)]
     [ValidateRange(0, [int]::MaxValue)]
-    [int] $N
+    [int] $N = 0
 )
 
 Set-StrictMode -Version Latest
@@ -20,8 +19,8 @@ function Get-Fibonacci {
         return $N
     }
 
-    $previous = 0
-    $current = 1
+    $previous = [System.Numerics.BigInteger] 0
+    $current = [System.Numerics.BigInteger] 1
     for ($i = 2; $i -le $N; $i++) {
         $next = $previous + $current
         $previous = $current

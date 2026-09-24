@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 Describe 'Get-Fibonacci' {
     BeforeAll {
         $mathToolPath = Join-Path $PSScriptRoot 'math-tool.ps1'
-        . $mathToolPath -N 0
+        . $mathToolPath
     }
 
     It 'returns only 0 for N=0' {
@@ -39,11 +39,6 @@ Describe 'math-tool.ps1 CLI' {
         @{ N = 1; Expected = 'Fibonacci(1) = 1' }
         @{ N = 5; Expected = 'Fibonacci(5) = 5' }
     ) {
-        param(
-            [int] $N,
-            [string] $Expected
-        )
-
         $output = @(pwsh -NoLogo -NoProfile -File $mathToolPath -N $N 2>&1)
 
         $LASTEXITCODE | Should -Be 0
