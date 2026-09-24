@@ -62,7 +62,6 @@ Describe 'math-tool.ps1 CLI' {
         $mathToolPath = Join-Path $PSScriptRoot 'math-tool.ps1'
         $powerShellPath = (Get-Command pwsh -CommandType Application | Select-Object -First 1).Source
         $processTimeoutMs = 10000
-        $processTimeoutReason = "math-tool.ps1 should exit within $($processTimeoutMs / 1000) seconds"
         $killTimeoutMs = 5000
         $invokeMathTool = {
             param([string[]] $Arguments)
@@ -82,7 +81,7 @@ Describe 'math-tool.ps1 CLI' {
                 $stdoutTask = $process.StandardOutput.ReadToEndAsync()
                 $stderrTask = $process.StandardError.ReadToEndAsync()
                 if (-not $process.WaitForExit($processTimeoutMs)) {
-                    throw $processTimeoutReason
+                    throw "math-tool.ps1 should exit within $($processTimeoutMs / 1000) seconds for arguments: $($Arguments -join ' ')"
                 }
                 # The process has exited; wait once more so async output redirection is flushed.
                 $process.WaitForExit()
@@ -161,5 +160,6 @@ Describe 'math-tool.ps1 CLI' {
 
         $result.ExitCode | Should -Not -Be 0
         $result.Stdout | Should -Be ''
+        $result.Stderr | Should -BeLike "*A positional parameter cannot be found that accepts argument 'factorial'.*"
     }
 }
