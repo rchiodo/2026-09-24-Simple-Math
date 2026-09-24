@@ -81,7 +81,9 @@ Describe 'math-tool.ps1 CLI' {
                 $process = [System.Diagnostics.Process]::Start($startInfo)
                 $stdoutTask = $process.StandardOutput.ReadToEndAsync()
                 $stderrTask = $process.StandardError.ReadToEndAsync()
-                $process.WaitForExit($processTimeoutMs) | Should -BeTrue -Because $processTimeoutReason
+                if (-not $process.WaitForExit($processTimeoutMs)) {
+                    throw $processTimeoutReason
+                }
                 # The process has exited; wait once more so async output redirection is flushed.
                 $process.WaitForExit()
                 [PSCustomObject] @{
@@ -148,6 +150,16 @@ Describe 'math-tool.ps1 CLI' {
         $result = & $invokeMathTool -Arguments @('6')
         $result.ExitCode | Should -Be 0
         $result.Stderr | Should -Be ''
-        $result.Stdout.TrimEnd("`r", "`n") | Should -Be 'Fibonacci(6) = 8'
+        $stdoutLines = $result.Stdout -split '\r?\n'
+        $stdoutLines.Count | Should -Be 2
+        $stdoutLines[0] | Should -Be 'Fibonacci(6) = 8'
+        $stdoutLines[1] | Should -Be ''
+    }
+
+    It 'requires Operation to be named' {
+        $result = & $invokeMathTool -Arguments @('6', 'factorial')
+
+        $result.ExitCode | Should -Not -Be 0
+        $result.Stdout | Should -Be ''
     }
 }
