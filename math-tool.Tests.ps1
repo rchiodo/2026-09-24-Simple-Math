@@ -21,11 +21,11 @@ Describe 'Get-Fibonacci' {
         $result[0] | Should -Be 1
     }
 
-    It 'returns only 5 for N=5' {
-        $result = @(Get-Fibonacci -N 5)
+    It 'returns only 8 for N=6' {
+        $result = @(Get-Fibonacci -N 6)
 
         $result.Count | Should -Be 1
-        $result[0] | Should -Be 5
+        $result[0] | Should -Be 8
     }
 }
 
@@ -38,7 +38,7 @@ Describe 'math-tool.ps1 CLI' {
     It 'prints exactly one result line for N=<N>' -TestCases @(
         @{ N = 0; Expected = 'Fibonacci(0) = 0' }
         @{ N = 1; Expected = 'Fibonacci(1) = 1' }
-        @{ N = 5; Expected = 'Fibonacci(5) = 5' }
+        @{ N = 6; Expected = 'Fibonacci(6) = 8' }
     ) {
         $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
         $startInfo.FileName = $powerShellPath
@@ -49,15 +49,23 @@ Describe 'math-tool.ps1 CLI' {
             [void] $startInfo.ArgumentList.Add($argument)
         }
 
-        $process = [System.Diagnostics.Process]::Start($startInfo)
-        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-        $stderrTask = $process.StandardError.ReadToEndAsync()
-        $process.WaitForExit()
-        $stdout = $stdoutTask.GetAwaiter().GetResult()
-        $stderr = $stderrTask.GetAwaiter().GetResult()
+        $process = $null
+        try {
+            $process = [System.Diagnostics.Process]::Start($startInfo)
+            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+            $stderrTask = $process.StandardError.ReadToEndAsync()
+            $process.WaitForExit()
+            $stdout = $stdoutTask.GetAwaiter().GetResult()
+            $stderr = $stderrTask.GetAwaiter().GetResult()
 
-        $process.ExitCode | Should -Be 0
-        $stderr | Should -Be ''
-        $stdout | Should -Be ($Expected + [Environment]::NewLine)
+            $process.ExitCode | Should -Be 0
+            $stderr | Should -Be ''
+            $stdout | Should -Be ($Expected + [Environment]::NewLine)
+        }
+        finally {
+            if ($null -ne $process) {
+                $process.Dispose()
+            }
+        }
     }
 }
