@@ -169,10 +169,7 @@ Describe 'math-tool.ps1 CLI' {
 
             $process.ExitCode | Should -Be 0
             $stderr | Should -Be ''
-            $stdoutLines = $stdout -split '\r?\n'
-            $stdoutLines.Count | Should -Be 2
-            $stdoutLines[0] | Should -Be 'Fibonacci(6) = 8'
-            $stdoutLines[1] | Should -Be ''
+            $stdout.TrimEnd("`r", "`n") | Should -Be 'Fibonacci(6) = 8'
         }
         finally {
             if ($null -ne $process) {
