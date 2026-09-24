@@ -1,5 +1,8 @@
 [CmdletBinding()]
 param(
+    [ValidateSet('fibonacci', 'factorial')]
+    [string] $Operation = 'fibonacci',
+
     [ValidateRange(0, [int]::MaxValue)]
     [int] $N = 0
 )
@@ -37,11 +40,45 @@ function Get-Fibonacci {
     return $current
 }
 
+function Get-Factorial {
+    <#
+    .SYNOPSIS
+    Returns the factorial of N.
+
+    .PARAMETER N
+    A non-negative integer.
+
+    .OUTPUTS
+    System.Numerics.BigInteger
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateRange(0, [int]::MaxValue)]
+        [int] $N
+    )
+
+    $result = [System.Numerics.BigInteger] 1
+    for ($i = 2; $i -le $N; $i++) {
+        $result *= $i
+    }
+
+    return $result
+}
+
 $isDotSourced = $MyInvocation.InvocationName -eq '.'
 if (-not $isDotSourced) {
     Set-StrictMode -Version Latest
     $ErrorActionPreference = 'Stop'
 
-    $value = Get-Fibonacci -N $N
-    Write-Output "Fibonacci($N) = $value"
+    switch ($Operation) {
+        'factorial' {
+            $value = Get-Factorial -N $N
+            Write-Output "Factorial($N) = $value"
+        }
+        default {
+            $value = Get-Fibonacci -N $N
+            Write-Output "Fibonacci($N) = $value"
+        }
+    }
 }
