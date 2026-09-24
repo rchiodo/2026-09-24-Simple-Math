@@ -32,7 +32,7 @@ Describe 'Get-Fibonacci' {
 Describe 'math-tool.ps1 CLI' {
     BeforeAll {
         $mathToolPath = Join-Path $PSScriptRoot 'math-tool.ps1'
-        $powerShellPath = (Get-Process -Id $PID).Path
+        $powerShellPath = (Get-Command pwsh -CommandType Application | Select-Object -First 1).Source
     }
 
     It 'prints exactly one result line for N=<N>' -TestCases @(
@@ -40,10 +40,22 @@ Describe 'math-tool.ps1 CLI' {
         @{ N = 1; Expected = 'Fibonacci(1) = 1' }
         @{ N = 5; Expected = 'Fibonacci(5) = 5' }
     ) {
-        $output = @(& $powerShellPath -NoLogo -NoProfile -File $mathToolPath -N $N 2>&1)
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $powerShellPath
+        $startInfo.UseShellExecute = $false
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        foreach ($argument in @('-NoLogo', '-NoProfile', '-File', $mathToolPath, '-N', $N)) {
+            [void] $startInfo.ArgumentList.Add($argument)
+        }
 
-        $LASTEXITCODE | Should -Be 0
-        $output.Count | Should -Be 1
-        $output[0] | Should -Be $Expected
+        $process = [System.Diagnostics.Process]::Start($startInfo)
+        $stdout = $process.StandardOutput.ReadToEnd()
+        $stderr = $process.StandardError.ReadToEnd()
+        $process.WaitForExit()
+
+        $process.ExitCode | Should -Be 0
+        $stderr | Should -Be ''
+        $stdout | Should -Be ($Expected + [Environment]::NewLine)
     }
 }
