@@ -4,9 +4,6 @@ param(
     [int] $N = 0
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 function Get-Fibonacci {
     <#
     .SYNOPSIS
@@ -40,8 +37,11 @@ function Get-Fibonacci {
     return $current
 }
 
-$isDotSourced = $MyInvocation.InvocationName -eq '.' -or $MyInvocation.Line -match '^\s*\.\s+'
+$isDotSourced = $MyInvocation.InvocationName -eq '.'
 if (-not $isDotSourced) {
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = 'Stop'
+
     $value = Get-Fibonacci -N $N
     Write-Output "Fibonacci($N) = $value"
 }

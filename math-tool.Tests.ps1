@@ -45,7 +45,7 @@ Describe 'math-tool.ps1 CLI' {
         $startInfo.UseShellExecute = $false
         $startInfo.RedirectStandardOutput = $true
         $startInfo.RedirectStandardError = $true
-        foreach ($argument in @('-NoLogo', '-NoProfile', '-File', $mathToolPath, '-N', $N)) {
+        foreach ($argument in @('-NoLogo', '-NoProfile', '-File', $mathToolPath, '-N', $N.ToString())) {
             [void] $startInfo.ArgumentList.Add($argument)
         }
 
