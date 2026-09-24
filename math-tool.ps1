@@ -72,13 +72,16 @@ if (-not $isDotSourced) {
     $ErrorActionPreference = 'Stop'
 
     switch ($Operation) {
+        'fibonacci' {
+            $value = Get-Fibonacci -N $N
+            Write-Output "Fibonacci($N) = $value"
+        }
         'factorial' {
             $value = Get-Factorial -N $N
             Write-Output "Factorial($N) = $value"
         }
         default {
-            $value = Get-Fibonacci -N $N
-            Write-Output "Fibonacci($N) = $value"
+            throw "Unsupported Operation: $Operation"
         }
     }
 }
