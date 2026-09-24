@@ -91,7 +91,7 @@ Describe 'math-tool.ps1 CLI' {
             $process = [System.Diagnostics.Process]::Start($startInfo)
             $stdoutTask = $process.StandardOutput.ReadToEndAsync()
             $stderrTask = $process.StandardError.ReadToEndAsync()
-            $process.WaitForExit()
+            $process.WaitForExit(10000) | Should -BeTrue
             $stdout = $stdoutTask.GetAwaiter().GetResult()
             $stderr = $stderrTask.GetAwaiter().GetResult()
 
@@ -104,6 +104,10 @@ Describe 'math-tool.ps1 CLI' {
         }
         finally {
             if ($null -ne $process) {
+                if (-not $process.HasExited) {
+                    $process.Kill($true)
+                    $process.WaitForExit()
+                }
                 $process.Dispose()
             }
         }
@@ -128,13 +132,17 @@ Describe 'math-tool.ps1 CLI' {
             try {
                 $process = [System.Diagnostics.Process]::Start($startInfo)
                 $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-                $process.WaitForExit()
+                $process.WaitForExit(10000) | Should -BeTrue
                 $stdout = $stdoutTask.GetAwaiter().GetResult()
                 $process.ExitCode | Should -Be 0
                 return ($stdout -split '\r?\n')[0]
             }
             finally {
                 if ($null -ne $process) {
+                    if (-not $process.HasExited) {
+                        $process.Kill($true)
+                        $process.WaitForExit()
+                    }
                     $process.Dispose()
                 }
             }
@@ -163,7 +171,7 @@ Describe 'math-tool.ps1 CLI' {
             $process = [System.Diagnostics.Process]::Start($startInfo)
             $stdoutTask = $process.StandardOutput.ReadToEndAsync()
             $stderrTask = $process.StandardError.ReadToEndAsync()
-            $process.WaitForExit()
+            $process.WaitForExit(10000) | Should -BeTrue
             $stdout = $stdoutTask.GetAwaiter().GetResult()
             $stderr = $stderrTask.GetAwaiter().GetResult()
 
@@ -173,6 +181,10 @@ Describe 'math-tool.ps1 CLI' {
         }
         finally {
             if ($null -ne $process) {
+                if (-not $process.HasExited) {
+                    $process.Kill($true)
+                    $process.WaitForExit()
+                }
                 $process.Dispose()
             }
         }
