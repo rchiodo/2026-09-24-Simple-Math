@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "shepherdTaskVersion": "1.0.3",
+  "campaignCreatedWithVersion": "1.0.3",
+  "stageOutcomeProtocolVersion": 1,
+  "campaignId": "ebe53a6b-9586-41df-8a88-da27f70edf26",
+  "campaignMetadataDirectory": "1-math-control-remove-before-merge",
+  "repository": "rchiodo/2026-09-24-Simple-Math",
+  "baseBranch": "experiment/shepherd-control",
+  "lessonPropagation": "off",
+  "taskIssues": [
+    2,
+    3
+  ],
+  "startedAt": "2026-09-24T23:01:59Z",
+  "completedAt": "2026-09-24T23:09:58Z",
+  "exitCode": 0,
+  "status": "succeeded"
+}
