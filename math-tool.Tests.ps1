@@ -32,6 +32,7 @@ Describe 'Get-Fibonacci' {
 Describe 'math-tool.ps1 CLI' {
     BeforeAll {
         $mathToolPath = Join-Path $PSScriptRoot 'math-tool.ps1'
+        $powerShellPath = (Get-Process -Id $PID).Path
     }
 
     It 'prints exactly one result line for N=<N>' -TestCases @(
@@ -39,7 +40,7 @@ Describe 'math-tool.ps1 CLI' {
         @{ N = 1; Expected = 'Fibonacci(1) = 1' }
         @{ N = 5; Expected = 'Fibonacci(5) = 5' }
     ) {
-        $output = @(pwsh -NoLogo -NoProfile -File $mathToolPath -N $N 2>&1)
+        $output = @(& $powerShellPath -NoLogo -NoProfile -File $mathToolPath -N $N 2>&1)
 
         $LASTEXITCODE | Should -Be 0
         $output.Count | Should -Be 1

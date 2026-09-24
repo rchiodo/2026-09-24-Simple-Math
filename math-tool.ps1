@@ -16,7 +16,7 @@ function Get-Fibonacci {
     )
 
     if ($N -lt 2) {
-        return $N
+        return [System.Numerics.BigInteger] $N
     }
 
     $previous = [System.Numerics.BigInteger] 0
@@ -30,7 +30,8 @@ function Get-Fibonacci {
     return $current
 }
 
-if ($MyInvocation.InvocationName -ne '.') {
+$isDotSourced = $MyInvocation.InvocationName -eq '.'
+if (-not $isDotSourced) {
     $value = Get-Fibonacci -N $N
     Write-Output "Fibonacci($N) = $value"
 }
